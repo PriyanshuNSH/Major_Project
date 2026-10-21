@@ -1,0 +1,167 @@
+import { User, UserProfile, AssessmentRecord, ClinicalReport, TrendDataPoint, AssessmentResult } from '../types';
+
+export const DEMO_USER: User = {
+  id: 'usr_demo_patient',
+  email: 'demo.user@healthsync.ai',
+  fullName: 'Demo User',
+  dateOfBirth: '1990-01-01',
+  gender: 'MALE',
+  role: 'patient',
+  createdAt: '2026-01-01T00:00:00Z',
+};
+
+export const DEMO_PROFILE: Partial<UserProfile> = {
+  bloodGroup: undefined,
+  heightCm: undefined,
+  weightKg: undefined,
+  smokingStatus: undefined,
+  alcoholConsumption: undefined,
+  physicalActivityLevel: undefined,
+};
+
+export const DEMO_ASSESSMENTS: AssessmentRecord[] = [
+  {
+    id: 'asm_db_001',
+    userId: 'usr_demo_patient',
+    moduleId: 'diabetes',
+    moduleName: 'Type 2 Diabetes Risk Estimator',
+    riskScore: 0.385,
+    riskLevel: 'MODERATE',
+    createdAt: '2026-09-28T14:20:00Z',
+    topRiskFactor: 'Fasting Blood Glucose (118 mg/dL)',
+    isDemonstrationData: true,
+  },
+  {
+    id: 'asm_ht_002',
+    userId: 'usr_demo_patient',
+    moduleId: 'heart_disease',
+    moduleName: 'Cardiovascular Risk Estimator',
+    riskScore: 0.245,
+    riskLevel: 'MODERATE',
+    createdAt: '2026-09-18T10:15:00Z',
+    topRiskFactor: 'Serum Cholesterol (225 mg/dL)',
+    isDemonstrationData: true,
+  },
+  {
+    id: 'asm_db_003',
+    userId: 'usr_demo_patient',
+    moduleId: 'diabetes',
+    moduleName: 'Type 2 Diabetes Risk Estimator',
+    riskScore: 0.420,
+    riskLevel: 'MODERATE',
+    createdAt: '2026-08-15T11:45:00Z',
+    topRiskFactor: 'BMI (28.4 kg/m²)',
+    isDemonstrationData: true,
+  },
+  {
+    id: 'asm_ht_004',
+    userId: 'usr_demo_patient',
+    moduleId: 'heart_disease',
+    moduleName: 'Cardiovascular Risk Estimator',
+    riskScore: 0.165,
+    riskLevel: 'LOW',
+    createdAt: '2026-07-20T16:00:00Z',
+    topRiskFactor: 'Resting Blood Pressure (132 mmHg)',
+    isDemonstrationData: true,
+  },
+];
+
+export const DEMO_TRENDS: TrendDataPoint[] = [
+  { date: 'Jul 20', diabetesScore: 0.45, heartScore: 0.16, glucose: 125, systolicBp: 132, cholesterol: 210 },
+  { date: 'Aug 05', diabetesScore: 0.43, heartScore: 0.18, glucose: 122, systolicBp: 130, cholesterol: 215 },
+  { date: 'Aug 20', diabetesScore: 0.42, heartScore: 0.20, glucose: 120, systolicBp: 128, cholesterol: 220 },
+  { date: 'Sep 05', diabetesScore: 0.40, heartScore: 0.22, glucose: 119, systolicBp: 126, cholesterol: 222 },
+  { date: 'Sep 18', diabetesScore: 0.39, heartScore: 0.25, glucose: 118, systolicBp: 125, cholesterol: 225 },
+  { date: 'Oct 01', diabetesScore: 0.38, heartScore: 0.24, glucose: 116, systolicBp: 124, cholesterol: 221 },
+];
+
+export const DEMO_REPORTS: ClinicalReport[] = [
+  {
+    id: 'rep_001',
+    assessmentId: 'asm_db_001',
+    moduleName: 'Type 2 Diabetes Clinical Summary',
+    generatedAt: '2026-09-28T14:25:00Z',
+    riskScore: 0.385,
+    riskLevel: 'MODERATE',
+    fileHashSha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    fileName: 'HealthSync_Diabetes_Summary_20260928.pdf',
+    fileSizeBytes: 142850,
+    isDemonstrationData: true,
+  },
+  {
+    id: 'rep_002',
+    assessmentId: 'asm_ht_002',
+    moduleName: 'Cardiovascular Profile Summary',
+    generatedAt: '2026-09-18T10:20:00Z',
+    riskScore: 0.245,
+    riskLevel: 'MODERATE',
+    fileHashSha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+    fileName: 'HealthSync_Cardiovascular_Summary_20260918.pdf',
+    fileSizeBytes: 156420,
+    isDemonstrationData: true,
+  },
+];
+
+export const SAMPLE_DIABETES_RESULT: AssessmentResult = {
+  id: 'asm_db_sample',
+  userId: 'usr_demo_patient',
+  moduleId: 'diabetes',
+  moduleName: 'Type 2 Diabetes Risk Estimator',
+  modelVersion: 'v1.0.0-calibrated',
+  riskScore: 0.385,
+  riskLevel: 'MODERATE',
+  confidenceInterval: [0.335, 0.435],
+  baseExpectedRisk: 0.320,
+  drivers: [
+    {
+      feature: 'glucose',
+      displayName: 'Fasting Plasma Glucose',
+      featureValue: '118 mg/dL',
+      shapImpact: 0.085,
+      direction: 'RISK_ELEVATING',
+      clinicalContext: 'Elevated fasting blood sugar in prediabetes threshold range (+8.5% impact).',
+    },
+    {
+      feature: 'bmi',
+      displayName: 'Body Mass Index',
+      featureValue: '28.4 kg/m²',
+      shapImpact: 0.042,
+      direction: 'RISK_ELEVATING',
+      clinicalContext: 'Overweight BMI range contributes to mild insulin resistance (+4.2% impact).',
+    },
+    {
+      feature: 'age',
+      displayName: 'Chronological Age',
+      featureValue: '38 years',
+      shapImpact: -0.021,
+      direction: 'PROTECTIVE',
+      clinicalContext: 'Age under 45 serves as a mild statistical protective buffer (-2.1% impact).',
+    },
+    {
+      feature: 'physical_activity',
+      displayName: 'Weekly Aerobic Activity',
+      featureValue: '3.5 hrs/week',
+      shapImpact: -0.041,
+      direction: 'PROTECTIVE',
+      clinicalContext: 'Consistent moderate exercise improves cellular glucose uptake (-4.1% impact).',
+    },
+  ],
+  recommendations: [
+    'Consult a healthcare provider to evaluate a clinical Glycated Hemoglobin (HbA1c) lab test.',
+    'Target 150+ minutes of weekly moderate-intensity cardiovascular exercise.',
+    'Emphasize complex whole grains and leafy vegetables while reducing simple refined carbohydrates.',
+    'Re-assess vitals in 90 days to monitor trajectory progress.',
+  ],
+  disclaimer: 'Informational risk estimation only. Not a medical diagnosis or clinical substitute. Consult a healthcare professional.',
+  createdAt: new Date().toISOString(),
+  isDemonstrationData: true,
+  inputSnapshot: {
+    glucose: 118,
+    bloodPressureSystolic: 126,
+    bloodPressureDiastolic: 82,
+    bmi: 28.4,
+    age: 38,
+    physicalActivityHoursWeek: 3.5,
+    familyHistoryDiabetes: true,
+  },
+};

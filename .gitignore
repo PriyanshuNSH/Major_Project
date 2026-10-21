@@ -1,0 +1,14 @@
+node_modules/
+**/node_modules/
+venv/
+**/venv/
+venv_old_backup/
+.venv/
+.env
+**/.env
+!.env.example
+dist/
+**/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
