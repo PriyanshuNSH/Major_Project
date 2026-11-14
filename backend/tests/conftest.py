@@ -8,13 +8,19 @@ import pytest
 try:
     from fastapi.testclient import TestClient
     from app.main import app as fastapi_app
-    from app.core.database import engine, Base
-    import app.models as _models  # Ensures all ORM models are registered in Base.metadata
 except ImportError:
     TestClient = None
     fastapi_app = None
+
+try:
+    from app.core.database import engine, Base
+except ImportError:
     engine = None
     Base = None
+
+try:
+    import app.models as _models  # Ensures all ORM models are registered in Base.metadata
+except ImportError:
     _models = None
 
 ISOLATED_STAGING_TEST_FILES = {

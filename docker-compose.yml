@@ -1,0 +1,196 @@
+# ==============================================================================
+# HealthSync AI — Docker Compose Architecture
+# Multi-container orchestration for FastAPI Backend, React Frontend, and Tools
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. FastAPI Application Backend
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: healthsync-backend:latest
+    container_name: healthsync-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Application Environment
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # Database Configuration
+      # Defaults to isolated container volume SQLite; seamlessly overridden by Neon PostgreSQL URL
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////app/data/healthsync_dev.db}
+      - DATABASE_ECHO=${DATABASE_ECHO:-false}
+
+      # Authentication & Security
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-healthsync_development_secret_key_at_least_256_bits_long_for_security}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      - REFRESH_COOKIE_SECURE=${REFRESH_COOKIE_SECURE:-false}
+
+      # CORS & Frontend Origins
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080,http://127.0.0.1:5173}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+
+      # Machine Learning Artifacts Path
+      - ML_MODELS_DIR=/app/ml/artifacts
+
+      # SMTP Email Delivery (Optional)
+      - SMTP_ENABLED=${SMTP_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+      - SMTP_USE_SSL=${SMTP_USE_SSL:-false}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-noreply@healthsync.ai}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-HealthSync AI}
+    volumes:
+      - backend-data:/app/data
+    networks:
+      - healthsync-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ----------------------------------------------------------------------------
+  # 2. React + Vite Frontend (Unprivileged Nginx)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    image: healthsync-frontend:latest
+    container_name: healthsync-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - healthsync-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/nginx-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # ----------------------------------------------------------------------------
+  # 3. Controlled One-Off Migration Runner (Explicit Profile Only)
+  # IMPORTANT: Never automatically executed during ordinary startup.
+  # Run explicitly via: docker compose run --rm migration
+  # ----------------------------------------------------------------------------
+  migration:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: healthsync-backend:latest
+    container_name: healthsync-migration
+    profiles:
+      - migration
+      - tools
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:////app/data/healthsync_dev.db}
+    volumes:
+      - backend-data:/app/data
+    networks:
+      - healthsync-network
+    command: ["alembic", "upgrade", "head"]
+
+  # ----------------------------------------------------------------------------
+  # 4. Optional Isolated Development Database (Explicit Profile Only)
+  # Never replaces external Neon PostgreSQL unless explicitly requested.
+  # Run explicitly via: docker compose --profile local-db up
+  # ----------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: healthsync-postgres-dev
+    profiles:
+      - local-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-healthsync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthsync_local_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-healthsync}
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    ports:
+      - "${DEV_DB_PORT:-5432}:5432"
+    networks:
+      - healthsync-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthsync}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # 5. Optional Monitoring Infrastructure (Explicit Profile Only)
+  # Run explicitly via: docker compose --profile monitoring up
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: healthsync-prometheus
+    profiles:
+      - monitoring
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - healthsync-network
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: healthsync-grafana
+    profiles:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-healthsync_admin_pass}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - healthsync-network
+
+networks:
+  healthsync-network:
+    name: healthsync-network
+    driver: bridge
+
+volumes:
+  backend-data:
+    name: healthsync-backend-data
+  postgres-dev-data:
+    name: healthsync-postgres-dev-data
+  prometheus-data:
+    name: healthsync-prometheus-data
+  grafana-data:
+    name: healthsync-grafana-data
