@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HealthSyncAIModelMetadata",
+  "description": "Schema definition for HealthSync AI machine learning model card and evaluation metrics.",
+  "type": "object",
+  "required": [
+    "module_id",
+    "model_version",
+    "algorithm",
+    "calibration_method",
+    "created_at",
+    "feature_names",
+    "raw_shap_explanation_type",
+    "metrics",
+    "evaluation_protocol"
+  ],
+  "properties": {
+    "module_id": {
+      "type": "string",
+      "enum": ["diabetes", "cardiovascular"]
+    },
+    "model_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "algorithm": {
+      "type": "string"
+    },
+    "calibration_method": {
+      "type": "string",
+      "enum": ["isotonic", "sigmoid"]
+    },
+    "calibration_cv": {
+      "type": "string",
+      "enum": ["prefit"]
+    },
+    "raw_shap_explanation_type": {
+      "type": "string",
+      "description": "Explicit identification that SHAP values reflect base tree decision margins, not calibrated probabilities."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "feature_names": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "categorical_features": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "evaluation_protocol": {
+      "type": "object",
+      "required": ["split_ratios", "random_state", "untouched_test_set"],
+      "properties": {
+        "split_ratios": {
+          "type": "object",
+          "properties": {
+            "train": { "type": "number" },
+            "calibration": { "type": "number" },
+            "test": { "type": "number" }
+          }
+        },
+        "random_state": { "type": "integer" },
+        "untouched_test_set": { "type": "boolean" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["test_brier_score", "test_auc_roc", "test_pr_auc"],
+      "properties": {
+        "test_brier_score": { "type": "number" },
+        "test_auc_roc": { "type": "number" },
+        "test_pr_auc": { "type": "number" },
+        "test_expected_calibration_error": { "type": "number" },
+        "test_accuracy": { "type": "number" },
+        "test_sensitivity_at_low_threshold": { "type": "number" },
+        "test_specificity_at_high_threshold": { "type": "number" }
+      }
+    }
+  }
+}
+

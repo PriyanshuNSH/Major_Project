@@ -1,0 +1,265 @@
+{
+  "module_id": "heart_disease",
+  "model_version": "1.0.0",
+  "evaluation_protocol": "Stratified 80/20 partition; 5-fold nested CV on Dev (N=242); single holdout evaluation on Test (N=61)",
+  "development_nested_oof_metrics": {
+    "n_samples": 242,
+    "pr_auc": 0.8288,
+    "roc_auc": 0.8237,
+    "brier_score": 0.166
+  },
+  "threshold_analysis_on_development_oof": {
+    "optimal_youden_point": {
+      "threshold": 0.55,
+      "sensitivity": 0.6577,
+      "specificity": 0.855,
+      "positive_predictive_value": 0.7935,
+      "negative_predictive_value": 0.7467,
+      "youden_j": 0.5126,
+      "true_positives": 73.0,
+      "false_positives": 19.0,
+      "true_negatives": 112.0,
+      "false_negatives": 38.0
+    },
+    "screening_point_sens_85": {
+      "threshold": 0.29,
+      "sensitivity": 0.8559,
+      "specificity": 0.5496,
+      "positive_predictive_value": 0.6169,
+      "negative_predictive_value": 0.8182,
+      "youden_j": 0.4055,
+      "true_positives": 95.0,
+      "false_positives": 59.0,
+      "true_negatives": 72.0,
+      "false_negatives": 16.0
+    },
+    "standard_50_point": {
+      "threshold": 0.5,
+      "sensitivity": 0.6847,
+      "specificity": 0.8244,
+      "positive_predictive_value": 0.7677,
+      "negative_predictive_value": 0.7552,
+      "youden_j": 0.5091,
+      "true_positives": 76.0,
+      "false_positives": 23.0,
+      "true_negatives": 108.0,
+      "false_negatives": 35.0
+    },
+    "high_specificity_point": {
+      "threshold": 0.65,
+      "sensitivity": 0.5405,
+      "specificity": 0.9618,
+      "positive_predictive_value": 0.9231,
+      "negative_predictive_value": 0.7119,
+      "youden_j": 0.5024,
+      "true_positives": 60.0,
+      "false_positives": 5.0,
+      "true_negatives": 126.0,
+      "false_negatives": 51.0
+    },
+    "risk_tier_profile": {
+      "LOW": {
+        "total_samples": 93,
+        "disease_cases": 18,
+        "disease_prevalence_in_tier": 0.1935
+      },
+      "MODERATE": {
+        "total_samples": 57,
+        "disease_cases": 20,
+        "disease_prevalence_in_tier": 0.3509
+      },
+      "HIGH": {
+        "total_samples": 38,
+        "disease_cases": 23,
+        "disease_prevalence_in_tier": 0.6053
+      },
+      "CRITICAL": {
+        "total_samples": 54,
+        "disease_cases": 50,
+        "disease_prevalence_in_tier": 0.9259
+      }
+    }
+  },
+  "final_holdout_evaluation": {
+    "holdout_samples": 61,
+    "holdout_positive_cases": 28,
+    "holdout_negative_cases": 33,
+    "observed_prevalence": 0.459,
+    "mean_predicted_probability": 0.4734,
+    "calibration_gap": 0.0144,
+    "point_estimates": {
+      "pr_auc": 0.9358,
+      "roc_auc": 0.9502,
+      "brier_score": 0.1069
+    },
+    "bootstrap_confidence_intervals_95": {
+      "pr_auc_ci_95": [
+        0.85,
+        0.9924
+      ],
+      "roc_auc_ci_95": [
+        0.89,
+        0.9924
+      ],
+      "brier_ci_95": [
+        0.0768,
+        0.1414
+      ],
+      "threshold_metrics_ci_95": {
+        "screening_0.30": {
+          "sensitivity_ci_95": [
+            1.0,
+            1.0
+          ],
+          "specificity_ci_95": [
+            0.5357,
+            0.8462
+          ],
+          "ppv_ci_95": [
+            0.5946,
+            0.8718
+          ],
+          "npv_ci_95": [
+            1.0,
+            1.0
+          ]
+        },
+        "standard_0.50": {
+          "sensitivity_ci_95": [
+            0.7186,
+            0.9688
+          ],
+          "specificity_ci_95": [
+            0.7188,
+            0.9667
+          ],
+          "ppv_ci_95": [
+            0.68,
+            0.963
+          ],
+          "npv_ci_95": [
+            0.75,
+            0.9722
+          ]
+        },
+        "balanced_youden_0.55": {
+          "sensitivity_ci_95": [
+            0.6333,
+            0.9259
+          ],
+          "specificity_ci_95": [
+            0.9024,
+            1.0
+          ],
+          "ppv_ci_95": [
+            0.8519,
+            1.0
+          ],
+          "npv_ci_95": [
+            0.7222,
+            0.9474
+          ]
+        },
+        "high_specificity_0.75": {
+          "sensitivity_ci_95": [
+            0.3571,
+            0.7143
+          ],
+          "specificity_ci_95": [
+            0.9024,
+            1.0
+          ],
+          "ppv_ci_95": [
+            0.8,
+            1.0
+          ],
+          "npv_ci_95": [
+            0.5778,
+            0.8372
+          ]
+        }
+      },
+      "n_bootstrap_iterations": 2000,
+      "effective_bootstrap_samples": 2000,
+      "bootstrap_method": "Non-parametric percentile bootstrap (2.5th and 97.5th percentiles)"
+    },
+    "threshold_evaluations": {
+      "screening_0.30": {
+        "threshold": 0.3,
+        "sensitivity": 1.0,
+        "specificity": 0.697,
+        "positive_predictive_value": 0.7368,
+        "negative_predictive_value": 1.0,
+        "youden_j": 0.697,
+        "true_positives": 28,
+        "false_positives": 10,
+        "true_negatives": 23,
+        "false_negatives": 0
+      },
+      "standard_0.50": {
+        "threshold": 0.5,
+        "sensitivity": 0.8571,
+        "specificity": 0.8485,
+        "positive_predictive_value": 0.8276,
+        "negative_predictive_value": 0.875,
+        "youden_j": 0.7056,
+        "true_positives": 24,
+        "false_positives": 5,
+        "true_negatives": 28,
+        "false_negatives": 4
+      },
+      "balanced_youden_0.55": {
+        "threshold": 0.55,
+        "sensitivity": 0.7857,
+        "specificity": 0.9697,
+        "positive_predictive_value": 0.9565,
+        "negative_predictive_value": 0.8421,
+        "youden_j": 0.7554,
+        "true_positives": 22,
+        "false_positives": 1,
+        "true_negatives": 32,
+        "false_negatives": 6
+      },
+      "high_specificity_0.75": {
+        "threshold": 0.75,
+        "sensitivity": 0.5357,
+        "specificity": 0.9697,
+        "positive_predictive_value": 0.9375,
+        "negative_predictive_value": 0.7111,
+        "youden_j": 0.5054,
+        "true_positives": 15,
+        "false_positives": 1,
+        "true_negatives": 32,
+        "false_negatives": 13
+      }
+    },
+    "holdout_risk_tier_distribution": {
+      "LOW": {
+        "total_samples": 23,
+        "disease_cases": 0,
+        "disease_prevalence_in_tier": 0.0
+      },
+      "MODERATE": {
+        "total_samples": 15,
+        "disease_cases": 6,
+        "disease_prevalence_in_tier": 0.4
+      },
+      "HIGH": {
+        "total_samples": 7,
+        "disease_cases": 7,
+        "disease_prevalence_in_tier": 1.0
+      },
+      "CRITICAL": {
+        "total_samples": 16,
+        "disease_cases": 15,
+        "disease_prevalence_in_tier": 0.9375
+      }
+    },
+    "small_sample_uncertainty_note": "The holdout cohort contains N=61 records (each patient constitutes ~1.64% of sample). Confidence intervals are appropriately wide to reflect sampling variability. Point estimates must not be interpreted as definitive clinical diagnostic performance guarantees."
+  },
+  "summary_conclusions": {
+    "holdout_generalization_confirmed": true,
+    "point_estimate_summary": "Holdout PR-AUC=0.9358, ROC-AUC=0.9502, Brier=0.1069",
+    "statistical_uncertainty_note": "Evaluated on locked N=61 holdout set. 95% bootstrap intervals reflect expected small-sample variation."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "module_id": "diabetes",
+  "model_version": "1.0.0",
+  "algorithm": "HistGradientBoostingClassifier",
+  "calibration_method": "isotonic",
+  "calibration_cv": "prefit",
+  "raw_shap_explanation_type": "raw_model_decision_margin",
+  "created_at": "2026-11-13T10:08:19.733026+00:00",
+  "feature_names": [
+    "glucose",
+    "blood_pressure_diastolic",
+    "bmi",
+    "age",
+    "family_history_diabetes",
+    "insulin",
+    "skin_thickness",
+    "pregnancies"
+  ],
+  "categorical_features": [],
+  "cohort_metadata": {
+    "cohort_name": "NIDDK Pima Clinical Benchmark",
+    "license": "Public Domain (17 U.S.C. \u00a7 105) / CC0 1.0 Universal",
+    "total_samples": 764,
+    "train_samples": 534,
+    "calib_samples": 115,
+    "test_samples": 115,
+    "cohort_limitations": [
+      "Homogeneous ethnic cohort (Pima Indian women near Phoenix, AZ)",
+      "Female-only sample (all participants aged >= 21)",
+      "Systolic blood pressure not measured in cohort; not synthetically fabricated",
+      "Physical activity hours not measured in cohort; not synthetically fabricated",
+      "High baseline diabetes prevalence (34.95%)"
+    ]
+  },
+  "empirical_shap_verification": {
+    "explanation_space": "log_odds_decision_margin",
+    "is_calibrated_probability_contribution": false,
+    "spearman_rank_correlation_raw_vs_calibrated": 0.9858575004261025,
+    "latency_ms_single_sample": 3.3350699999573408,
+    "latency_budget_ms": 60.0
+  },
+  "evaluation_protocol": {
+    "split_ratios": {
+      "train": 0.7,
+      "calibration": 0.15,
+      "test": 0.15
+    },
+    "random_state": 42,
+    "untouched_test_set": true
+  },
+  "metrics": {
+    "test_brier_score": 0.21492002271136157,
+    "test_auc_roc": 0.692,
+    "test_pr_auc": 0.4869808281187503,
+    "test_expected_calibration_error": 0.13422717877276505,
+    "test_sensitivity_at_low_threshold": 0.725,
+    "test_specificity_at_high_threshold": 0.88
+  }
+}

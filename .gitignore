@@ -12,3 +12,24 @@ dist/
 __pycache__/
 *.pyc
 .pytest_cache/
+*.db
+*.sqlite*
+
+# ML datasets and binary model artifacts (Phase 4)
+ml/data/*.csv
+ml/data/*.parquet
+ml/data/*.gz
+ml/artifacts/**/*.joblib
+ml/artifacts/**/*.pkl
+!ml/artifacts/**/.gitkeep
+!ml/artifacts/diabetes/*.joblib
+!ml/artifacts/heart/*.joblib
+
+# Docker & Kubernetes Local Overrides and Secrets
+docker-compose.override.yml
+k8s/02-secret.yaml
+k8s/*-secret.yaml
+
+
+
+

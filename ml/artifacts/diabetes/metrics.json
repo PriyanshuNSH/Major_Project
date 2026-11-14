@@ -1,0 +1,50 @@
+{
+  "brier_score": 0.21492002271136157,
+  "expected_calibration_error": 0.13422717877276505,
+  "auc_roc": 0.692,
+  "pr_auc": 0.4869808281187503,
+  "decision_points": {
+    "threshold_20": {
+      "threshold": 0.2,
+      "sensitivity": 0.725,
+      "specificity": 0.6266666666666667,
+      "positive_predictive_value": 0.5087719298245614,
+      "negative_predictive_value": 0.8103448275862069,
+      "true_positives": 29,
+      "false_positives": 28,
+      "true_negatives": 47,
+      "false_negatives": 11
+    },
+    "threshold_45": {
+      "threshold": 0.45,
+      "sensitivity": 0.65,
+      "specificity": 0.72,
+      "positive_predictive_value": 0.5531914893617021,
+      "negative_predictive_value": 0.7941176470588235,
+      "true_positives": 26,
+      "false_positives": 21,
+      "true_negatives": 54,
+      "false_negatives": 14
+    },
+    "threshold_70": {
+      "threshold": 0.7,
+      "sensitivity": 0.225,
+      "specificity": 0.88,
+      "positive_predictive_value": 0.5,
+      "negative_predictive_value": 0.6804123711340206,
+      "true_positives": 9,
+      "false_positives": 9,
+      "true_negatives": 66,
+      "false_negatives": 31
+    }
+  },
+  "spearman_rank_correlation_raw_vs_calibrated": 0.9858575004261025,
+  "shap_avg_latency_ms": 3.3350699999573408,
+  "shap_max_latency_ms": 3.728199999386561,
+  "dataset_sample_counts": {
+    "total": 764,
+    "train": 534,
+    "calibration": 115,
+    "test": 115
+  }
+}

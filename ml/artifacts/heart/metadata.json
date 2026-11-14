@@ -1,0 +1,117 @@
+{
+  "module_id": "heart_disease",
+  "model_version": "1.0.0",
+  "algorithm": "LogisticRegression (L2 Penalized, C=0.2)",
+  "calibration_method": "CalibratedClassifierCV (Sigmoid / Platt Scaling)",
+  "calibration_cv": 4,
+  "calibration_ensemble": false,
+  "calibration_details": {
+    "method": "sigmoid",
+    "cross_validation_splits": 4,
+    "ensemble_mode": false,
+    "description": "Base LogisticRegression pipeline refitted on all N=242 development records. Calibrator fitted on 4-fold out-of-fold decision function scores.",
+    "production_calibrated_classifiers_count": 1
+  },
+  "raw_shap_explanation_type": "raw_model_decision_margin",
+  "created_at": "2026-11-13T16:17:29.723191+00:00",
+  "feature_names": [
+    "age",
+    "sex",
+    "chest_pain_type",
+    "resting_bp",
+    "serum_cholesterol",
+    "fasting_blood_sugar",
+    "resting_ecg",
+    "max_heart_rate",
+    "exercise_angina",
+    "oldpeak",
+    "st_slope"
+  ],
+  "continuous_features": [
+    "age",
+    "resting_bp",
+    "serum_cholesterol",
+    "max_heart_rate",
+    "oldpeak"
+  ],
+  "categorical_features": [
+    "sex",
+    "chest_pain_type",
+    "fasting_blood_sugar",
+    "resting_ecg",
+    "exercise_angina",
+    "st_slope"
+  ],
+  "positive_class": 1,
+  "base_expected_risk": 0.4587,
+  "cohort_metadata": {
+    "cohort_name": "UCI Cleveland Heart Disease Benchmark Cohort",
+    "source_provenance": "UC Irvine Machine Learning Repository (processed.cleveland.data)",
+    "total_samples": 303,
+    "development_samples": 242,
+    "holdout_samples": 61,
+    "features_used": 11,
+    "features_excluded_invasive": [
+      "ca (fluoroscopy vessels)",
+      "thal (scintigraphic defect)"
+    ],
+    "cohort_limitations": [
+      "Single-center retrospective cohort from Cleveland Clinic Foundation (1988)",
+      "Small sample size (N=303 total; N=242 dev, N=61 holdout)",
+      "Non-invasive screening subset excludes fluoroscopy and scintigraphy",
+      "Informational risk estimation only; not an acute cardiac diagnostic tool"
+    ]
+  },
+  "risk_thresholds": {
+    "screening_threshold": 0.3,
+    "balanced_youden_threshold": 0.55,
+    "standard_threshold": 0.5,
+    "high_specificity_threshold": 0.75,
+    "categories": {
+      "LOW": {
+        "min_risk": 0.0,
+        "max_risk": 0.3,
+        "clinical_interpretation": "Low estimated statistical probability; routine lifestyle counseling."
+      },
+      "MODERATE": {
+        "min_risk": 0.3,
+        "max_risk": 0.55,
+        "clinical_interpretation": "Intermediate risk; review hemodynamic vitals and glycemic control."
+      },
+      "HIGH": {
+        "min_risk": 0.55,
+        "max_risk": 0.75,
+        "clinical_interpretation": "Elevated statistical probability; clinician consultation recommended."
+      },
+      "CRITICAL": {
+        "min_risk": 0.75,
+        "max_risk": 1.0,
+        "clinical_interpretation": "Substantial biomarker elevation; prioritize clinical cardiovascular review."
+      }
+    }
+  },
+  "empirical_shap_verification": {
+    "explanation_space": "log_odds_decision_margin",
+    "is_calibrated_probability_contribution": false,
+    "explainer_class": "shap.LinearExplainer",
+    "analytic_additivity_verified": true,
+    "display_label": "Decision Margin Impact (Log-Odds Shift)",
+    "background_sample_size": 50
+  },
+  "checksums": {
+    "heart_development_sha256": "f1d975c6d6ec2d6028e2ba4aa3207db118dcafcb3dedbe533178067eda8dd52a",
+    "heart_holdout_test_sha256": "cf9cf0adff4d7fc0026737c9b1ebf70da169cac91b645fd66bb550130addcb25",
+    "nested_oof_predictions_sha256": "c5be340aed1493218ad2c3f8bec00237cc8b174d8660dfbee761f0370c81f28c",
+    "model_joblib_sha256": "8a537e1dc7669855b2d980208bc197d263c122cc109fc5592d4ba18c13793a25",
+    "background_joblib_sha256": "eac0c768c59db65cfff43100ccb36b76960795bdc8a0b80a9833d2aed397b535"
+  },
+  "environment": {
+    "python_version": "3.11.0",
+    "scikit_learn_version": "1.5.2",
+    "shap_version": "0.46.0"
+  },
+  "clinical_non_diagnostic_boundary": {
+    "mandatory_disclaimer": "Informational risk estimation only. Not a medical diagnosis or clinical substitute. Consult a healthcare professional.",
+    "emergency_notice": "If experiencing chest pressure, pain radiating to arm/jaw, or shortness of breath, seek immediate emergency medical care."
+  }
+}
