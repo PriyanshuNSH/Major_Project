@@ -1,39 +1,141 @@
-name: Deploy HealthSync AI
+name: HealthSync AI — Continuous Deployment (CD)
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Target deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 permissions:
   contents: read
-  pages: write
+  packages: write
   id-token: write
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm install
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: frontend/dist
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
 
-  deploy:
-    needs: build
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1. Publish Container Images to GitHub Container Registry (GHCR)
+  # ----------------------------------------------------------------------------
+  publish-ghcr:
+    name: Build & Publish Container Images to GHCR
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive Image Tag Metadata
+        id: meta
+        run: |
+          # Use short commit SHA as primary immutable image identifier
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          # Convert repository owner to lowercase for GHCR naming compliance
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "repo_owner=${REPO_OWNER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & Push Backend Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-backend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-backend:${{ github.sha }}
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & Push Frontend Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-frontend:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-frontend:${{ github.sha }}
+            ghcr.io/${{ steps.meta.outputs.repo_owner }}/healthsync-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ----------------------------------------------------------------------------
+  # 2. Gated Kubernetes Deployment (Opt-in via Cluster Secret)
+  # ----------------------------------------------------------------------------
+  deploy-kubernetes:
+    name: Deploy to Kubernetes Cluster
+    needs: [publish-ghcr]
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: production
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Cluster Credentials & Gated Deployment
+        id: check-cluster
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          if [ -z "$KUBE_CONFIG" ]; then
+            echo "NOTICE: KUBE_CONFIG secret is not configured for environment 'production'."
+            echo "Automated cluster rollout skipped safely. Container images are available in GHCR:"
+            echo "  - ghcr.io/${{ github.repository_owner }}/healthsync-backend:${{ needs.publish-ghcr.outputs.image_tag }}"
+            echo "  - ghcr.io/${{ github.repository_owner }}/healthsync-frontend:${{ needs.publish-ghcr.outputs.image_tag }}"
+            echo "cluster_configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Cluster credentials found. Proceeding with gated Kubernetes deployment."
+            echo "cluster_configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up kubectl
+        if: steps.check-cluster.outputs.cluster_configured == 'true'
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - name: Configure Kubeconfig & Apply Rollout
+        if: steps.check-cluster.outputs.cluster_configured == 'true'
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+          IMAGE_TAG: ${{ needs.publish-ghcr.outputs.image_tag }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+          # Update container images in the healthsync namespace without executing database migrations
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          kubectl set image deployment/healthsync-backend-deployment \
+            healthsync-backend="ghcr.io/${REPO_OWNER}/healthsync-backend:${IMAGE_TAG}" \
+            -n healthsync
+          kubectl set image deployment/healthsync-frontend-deployment \
+            healthsync-frontend="ghcr.io/${REPO_OWNER}/healthsync-frontend:${IMAGE_TAG}" \
+            -n healthsync
+
+          # Monitor rollout status
+          kubectl rollout status deployment/healthsync-backend-deployment -n healthsync --timeout=180s
+          kubectl rollout status deployment/healthsync-frontend-deployment -n healthsync --timeout=180s
