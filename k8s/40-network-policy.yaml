@@ -1,0 +1,87 @@
+# ==============================================================================
+# HealthSync AI — Kubernetes NetworkPolicy (Tenant Isolation & Traffic Rules)
+# Enforces defense-in-depth isolation across Frontend, Backend, and External Cloud
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-network-policy
+  namespace: healthsync
+  labels:
+    app.kubernetes.io/name: frontend-network-policy
+    app.kubernetes.io/part-of: healthsync-ai
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow incoming traffic from external clients or Ingress Controllers on port 8080
+    - ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow communication to Backend service pods on port 8000
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 8000
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: healthsync
+  labels:
+    app.kubernetes.io/name: backend-network-policy
+    app.kubernetes.io/part-of: healthsync-ai
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow ingress strictly from Frontend pods on port 8000 (prevents direct public access)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow outbound connection to external Neon PostgreSQL (port 5432)
+    - ports:
+        - protocol: TCP
+          port: 5432
+    # Allow outbound connection to external SMTP server (port 587)
+    - ports:
+        - protocol: TCP
+          port: 587
+    # Allow outbound HTTPS for certificates / secure webhooks (port 443)
+    - ports:
+        - protocol: TCP
+          port: 443

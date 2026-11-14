@@ -143,13 +143,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python for YAML & K8s verification
+      - name: Set up Python 3.11 for K8s verification
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
 
-      - name: Install validation dependencies
-        run: pip install pyyaml pytest
+      - name: Install backend and validation dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt pyyaml
 
       - name: Validate Kubernetes Manifests & Security Policies
         run: |

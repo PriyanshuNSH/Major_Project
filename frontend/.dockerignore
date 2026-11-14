@@ -1,0 +1,14 @@
+# HealthSync AI — Frontend Docker Ignore Directive
+.git/
+.gitignore
+.env
+.env.*
+node_modules/
+dist/
+.vite/
+playwright-report/
+test-results/
+tests/
+e2e/
+playwright.config.ts
+*.log

@@ -1,0 +1,53 @@
+# HealthSync AI — Root Docker Ignore Directive
+# Prevents sensitive credentials, caches, test databases, and local artifacts from leaking into images
+
+# Git & Repository Metadata
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Environment & Credentials (CRITICAL: NEVER LEAK SECRETS)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Python Caches & Virtual Environments
+**/__pycache__/
+**/*.py[cod]
+*$py.class
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+venv/
+.venv/
+env/
+backend/venv/
+
+# Node & Frontend Build Artifacts
+**/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/playwright-report/
+frontend/test-results/
+
+# Local SQLite Databases & Logs
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+backend/healthsync_dev.db
+backend/healthsync_e2e.db
+**/*.log
+
+# ML Research Raw Data (Public Cohorts - Only compiled models in artifacts/ are needed)
+ml/data/
+ml/notebooks/
+
+# Documentation & Scratch Files
+docs/
+scratch/
+runbook_staging.ps1

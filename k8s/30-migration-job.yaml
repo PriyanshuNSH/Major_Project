@@ -1,0 +1,55 @@
+# ==============================================================================
+# HealthSync AI — Controlled Database Migration Job
+# CRITICAL: This Job is NEVER run automatically during ordinary startup.
+# It is exclusively intended for controlled, intentional execution:
+#   kubectl apply -f k8s/30-migration-job.yaml
+# ==============================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: healthsync-migration-job
+  namespace: healthsync
+  labels:
+    app.kubernetes.io/name: migration
+    app.kubernetes.io/component: job
+    app.kubernetes.io/part-of: healthsync-ai
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: migration
+        app.kubernetes.io/name: migration
+        app.kubernetes.io/component: job
+        app.kubernetes.io/part-of: healthsync-ai
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migration
+          image: healthsync-backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["alembic", "upgrade", "head"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          envFrom:
+            - configMapRef:
+                name: healthsync-config
+            - secretRef:
+                name: healthsync-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

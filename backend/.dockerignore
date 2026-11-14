@@ -1,0 +1,21 @@
+# HealthSync AI — Backend Docker Ignore Directive
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.venv/
+env/
+tests/
+*.db
+*.sqlite
+*.sqlite3
+healthsync_dev.db
+healthsync_e2e.db
+*.log
